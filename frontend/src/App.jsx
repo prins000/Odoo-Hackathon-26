@@ -8,13 +8,14 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/common/Layout';
 import Login from './pages/auth/Login';
 import CommandCenter from './pages/dashboard/CommandCenter';
+import SafetyDashboard from './pages/dashboard/SafetyDashboard';
 import VehicleRegistry from './pages/vehicles/VehicleRegistry';
 import TripDispatcher from './pages/trips/TripDispatcher';
-import DriverManagement from './pages/drivers/DriverManagement';
 import MaintenanceManagement from './pages/maintenance/MaintenanceManagement';
 import ExpenseManagement from './pages/expenses/ExpenseManagement';
 import FuelManagement from './pages/fuel/FuelManagement';
 import AnalyticsDashboard from './pages/analytics/AnalyticsDashboard';
+import Profile from './pages/auth/Profile';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -30,6 +31,16 @@ const ProtectedRoute = ({ children }) => {
   return user ? children : <Navigate to="/login" />;
 };
 
+const DashboardRouter = () => {
+  const { user } = useAuth();
+  
+  if (user?.role === 'Safety Officer') {
+    return <SafetyDashboard />;
+  }
+  
+  return <CommandCenter />;
+};
+
 function AppRoutes() {
   return (
     <Routes>
@@ -38,7 +49,7 @@ function AppRoutes() {
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Layout>
-            <CommandCenter />
+            <DashboardRouter />
           </Layout>
         </ProtectedRoute>
       } />
@@ -53,13 +64,6 @@ function AppRoutes() {
         <ProtectedRoute>
           <Layout>
             <TripDispatcher />
-          </Layout>
-        </ProtectedRoute>
-      } />
-      <Route path="/drivers" element={
-        <ProtectedRoute>
-          <Layout>
-            <DriverManagement />
           </Layout>
         </ProtectedRoute>
       } />
@@ -88,6 +92,13 @@ function AppRoutes() {
         <ProtectedRoute>
           <Layout>
             <AnalyticsDashboard />
+          </Layout>
+        </ProtectedRoute>
+      } />
+      <Route path="/profile" element={
+        <ProtectedRoute>
+          <Layout>
+            <Profile />
           </Layout>
         </ProtectedRoute>
       } />

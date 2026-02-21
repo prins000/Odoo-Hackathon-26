@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { loginStart, loginSuccess, loginFailure, logout, checkSessionExpiry } from '../store/authSlice';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { getOperationErrorMessage } from '../utils/errorMessages';
 
 const AuthContext = createContext();
 
@@ -59,7 +60,7 @@ export const AuthProvider = ({ children }) => {
       toast.success('Login successful!');
       return { success: true };
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Login failed';
+      const errorMessage = getOperationErrorMessage({ type: 'login' }, error);
       dispatch(loginFailure(errorMessage));
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
@@ -86,7 +87,7 @@ export const AuthProvider = ({ children }) => {
       toast.success('Registration successful!');
       return { success: true };
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Registration failed';
+      const errorMessage = getOperationErrorMessage({ type: 'register' }, error);
       dispatch(loginFailure(errorMessage));
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
@@ -110,7 +111,37 @@ export const AuthProvider = ({ children }) => {
       toast.success('Profile updated successfully!');
       return { success: true };
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Profile update failed';
+      const errorMessage = getOperationErrorMessage({ type: 'update', resource: 'profile' }, error);
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  const fetchUserProfile = async () => {
+    try {
+      console.log('AuthContext - fetching user profile from backend');
+      console.log('AuthContext - current token:', token);
+      const response = await axios.get('http://localhost:3000/api/auth/profile');
+      console.log('AuthContext - profile response:', response.data);
+      // Update Redux state with fresh data from backend
+      dispatch({ type: 'auth/updateUser', payload: response.data.data });
+      return { success: true, data: response.data.data };
+    } catch (error) {
+      console.error('AuthContext - fetch profile error:', error);
+      console.error('AuthContext - error response:', error.response?.data);
+      const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'profile' }, error);
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  const changePassword = async (passwordData) => {
+    try {
+      const response = await axios.put('http://localhost:3000/api/auth/change-password', passwordData);
+      toast.success('Password changed successfully!');
+      return { success: true };
+    } catch (error) {
+      const errorMessage = getOperationErrorMessage({ type: 'update', resource: 'profile' }, error);
       toast.error(errorMessage);
       return { success: false, error: errorMessage };
     }
@@ -126,7 +157,9 @@ export const AuthProvider = ({ children }) => {
     register,
     logout: logoutUser,
     clearError,
-    updateUserProfile
+    updateUserProfile,
+    fetchUserProfile,
+    changePassword
   };
 
   return (

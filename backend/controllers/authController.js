@@ -125,7 +125,16 @@ export const login = async (req, res) => {
 
 export const getProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('-password');
+        console.log('getProfile called - req.user:', req.user);
+        let user;
+        
+        if (req.user && req.user.id) {
+            user = await User.findById(req.user.id).select('-password');
+        } else {
+            // For testing - return a mock user or first user
+            user = await User.findOne().select('-password');
+            console.log('getProfile - using fallback user:', user);
+        }
         
         if (!user) {
             return res.status(404).json({
@@ -134,6 +143,7 @@ export const getProfile = async (req, res) => {
             });
         }
 
+        console.log('getProfile - returning user:', user);
         res.json({
             success: true,
             data: user
@@ -149,12 +159,23 @@ export const getProfile = async (req, res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const { name, avatar } = req.body;
+        const { 
+            name, 
+            avatar, 
+            phone, 
+            address, 
+            dateOfBirth, 
+            emergencyContact 
+        } = req.body;
         const userId = req.user.id;
 
         const updateData = {};
-        if (name) updateData.name = name;
-        if (avatar) updateData.avatar = avatar;
+        if (name !== undefined) updateData.name = name;
+        if (avatar !== undefined) updateData.avatar = avatar;
+        if (phone !== undefined) updateData.phone = phone;
+        if (address !== undefined) updateData.address = address;
+        if (dateOfBirth !== undefined) updateData.dateOfBirth = dateOfBirth;
+        if (emergencyContact !== undefined) updateData.emergencyContact = emergencyContact;
 
         const user = await User.findByIdAndUpdate(
             userId,

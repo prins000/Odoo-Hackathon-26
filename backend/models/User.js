@@ -22,14 +22,54 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Role is required"],
         enum: {
-            values: ['admin', 'manager', 'dispatcher', 'driver', 'Fleet Manager', 'Dispatcher', 'Safety Officer', 'Financial Analyst'],
-            message: 'Role must be one of: admin, manager, dispatcher, driver, Fleet Manager, Dispatcher, Safety Officer, Financial Analyst'
+            values: ['Fleet Manager', 'Dispatcher', 'Safety Officer', 'Financial Analyst'],
+            message: 'Role must be one of: Fleet Manager, Dispatcher, Safety Officer, Financial Analyst'
         },
-        default: 'driver'
+        default: 'Fleet Manager'
     },
     avatar: {
         type: String,
         default: ""
+    },
+    phone: {
+        type: String,
+        default: ""
+    },
+    address: {
+        street: {
+            type: String,
+            default: ""
+        },
+        city: {
+            type: String,
+            default: ""
+        },
+        state: {
+            type: String,
+            default: ""
+        },
+        pincode: {
+            type: String,
+            default: ""
+        }
+    },
+    dateOfBirth: {
+        type: Date,
+        default: null
+    },
+    emergencyContact: {
+        name: {
+            type: String,
+            default: ""
+        },
+        phone: {
+            type: String,
+            default: ""
+        },
+        relation: {
+            type: String,
+            default: ""
+        }
     },
     isActive: {
         type: Boolean,

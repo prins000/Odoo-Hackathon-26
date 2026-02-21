@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { useSelector } from 'react-redux';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { getOperationErrorMessage } from '../../utils/errorMessages';
 import {
   DollarSign,
   Plus,
@@ -17,6 +20,7 @@ import {
 } from 'lucide-react';
 
 const ExpenseManagement = () => {
+  const { token } = useSelector((state) => state.auth);
   const [expenses, setExpenses] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -47,17 +51,17 @@ const ExpenseManagement = () => {
 
   const fetchExpenses = async () => {
     try {
-      const response = await fetch('/api/expenses', {
+      const response = await axios.get('/api/expenses', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
-      const data = await response.json();
-      if (data.success) {
-        setExpenses(data.data);
+      if (response.data.success) {
+        setExpenses(response.data.data);
       }
     } catch (error) {
-      toast.error('Failed to fetch expenses');
+      const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'expenses' }, error);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -65,17 +69,17 @@ const ExpenseManagement = () => {
 
   const fetchVehicles = async () => {
     try {
-      const response = await fetch('/api/vehicles', {
+      const response = await axios.get('/api/vehicles', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
-      const data = await response.json();
-      if (data.success) {
-        setVehicles(data.data);
+      if (response.data.success) {
+        setVehicles(response.data.data);
       }
     } catch (error) {
-      console.error('Failed to fetch vehicles');
+      const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'vehicles' }, error);
+      console.error(errorMessage);
     }
   };
 
@@ -85,47 +89,49 @@ const ExpenseManagement = () => {
       const url = editingExpense ? `/api/expenses/${editingExpense._id}` : '/api/expenses';
       const method = editingExpense ? 'PUT' : 'POST';
       
-      const response = await fetch(url, {
-        method,
+      const response = await axios({
+        url: editingExpense ? `/api/expenses/${editingExpense._id}` : '/api/expenses',
+        method: editingExpense ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        data: formData
       });
       
-      const data = await response.json();
-      if (data.success) {
+      if (response.data.success) {
         toast.success(editingExpense ? 'Expense updated successfully' : 'Expense added successfully');
         setShowModal(false);
         fetchExpenses();
         resetForm();
       } else {
-        toast.error(data.message || 'Failed to save expense');
+        const errorMessage = getOperationErrorMessage({ type: editingExpense ? 'update' : 'create', resource: 'expense' }, error);
+        toast.error(errorMessage);
       }
     } catch (error) {
-      toast.error('Failed to save expense');
+      const errorMessage = getOperationErrorMessage({ type: editingExpense ? 'update' : 'create', resource: 'expense' }, error);
+      toast.error(errorMessage);
     }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this expense?')) {
       try {
-        const response = await fetch(`/api/expenses/${id}`, {
-          method: 'DELETE',
+        const response = await axios.delete(`/api/expenses/${id}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           }
         });
-        const data = await response.json();
-        if (data.success) {
+        if (response.data.success) {
           toast.success('Expense deleted successfully');
           fetchExpenses();
         } else {
-          toast.error(data.message || 'Failed to delete expense');
+          const errorMessage = getOperationErrorMessage({ type: 'delete', resource: 'expense' }, error);
+          toast.error(errorMessage);
         }
       } catch (error) {
-        toast.error('Failed to delete expense');
+        const errorMessage = getOperationErrorMessage({ type: 'delete', resource: 'expense' }, error);
+        toast.error(errorMessage);
       }
     }
   };

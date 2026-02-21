@@ -40,7 +40,8 @@ const authSlice = createSlice({
       state.error = null;
     },
     updateUser: (state, action) => {
-      state.user = { ...state.user, ...action.payload };
+      // Create a deep copy to ensure nested objects are updated properly
+      state.user = JSON.parse(JSON.stringify({ ...state.user, ...action.payload }));
     },
     checkSessionExpiry: (state) => {
       if (state.sessionExpiry && new Date() > new Date(state.sessionExpiry)) {

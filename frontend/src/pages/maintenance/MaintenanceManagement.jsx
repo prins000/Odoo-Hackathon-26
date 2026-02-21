@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { useSelector } from 'react-redux';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { getOperationErrorMessage } from '../../utils/errorMessages';
 import {
   Wrench,
   Plus,
@@ -17,6 +20,7 @@ import {
 } from 'lucide-react';
 
 const MaintenanceManagement = () => {
+  const { token } = useSelector((state) => state.auth);
   const [maintenanceRecords, setMaintenanceRecords] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -44,17 +48,17 @@ const MaintenanceManagement = () => {
 
   const fetchMaintenanceRecords = async () => {
     try {
-      const response = await fetch('/api/maintenance', {
+      const response = await axios.get('/api/maintenance', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
-      const data = await response.json();
-      if (data.success) {
-        setMaintenanceRecords(data.data);
+      if (response.data.success) {
+        setMaintenanceRecords(response.data.data);
       }
     } catch (error) {
-      toast.error('Failed to fetch maintenance records');
+      const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'maintenance' }, error);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -62,17 +66,17 @@ const MaintenanceManagement = () => {
 
   const fetchVehicles = async () => {
     try {
-      const response = await fetch('/api/vehicles', {
+      const response = await axios.get('/api/vehicles', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
-      const data = await response.json();
-      if (data.success) {
-        setVehicles(data.data);
+      if (response.data.success) {
+        setVehicles(response.data.data);
       }
     } catch (error) {
-      console.error('Failed to fetch vehicles');
+      const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'vehicles' }, error);
+      console.error(errorMessage);
     }
   };
 
@@ -82,47 +86,49 @@ const MaintenanceManagement = () => {
       const url = editingRecord ? `/api/maintenance/${editingRecord._id}` : '/api/maintenance';
       const method = editingRecord ? 'PUT' : 'POST';
       
-      const response = await fetch(url, {
-        method,
+      const response = await axios({
+        url: editingRecord ? `/api/maintenance/${editingRecord._id}` : '/api/maintenance',
+        method: editingRecord ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(formData)
+        data: formData
       });
       
-      const data = await response.json();
-      if (data.success) {
+      if (response.data.success) {
         toast.success(editingRecord ? 'Maintenance record updated successfully' : 'Maintenance scheduled successfully');
         setShowModal(false);
         fetchMaintenanceRecords();
         resetForm();
       } else {
-        toast.error(data.message || 'Failed to save maintenance record');
+        const errorMessage = getOperationErrorMessage({ type: editingRecord ? 'update' : 'create', resource: 'maintenance' }, error);
+        toast.error(errorMessage);
       }
     } catch (error) {
-      toast.error('Failed to save maintenance record');
+      const errorMessage = getOperationErrorMessage({ type: editingRecord ? 'update' : 'create', resource: 'maintenance' }, error);
+      toast.error(errorMessage);
     }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this maintenance record?')) {
       try {
-        const response = await fetch(`/api/maintenance/${id}`, {
-          method: 'DELETE',
+        const response = await axios.delete(`/api/maintenance/${id}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           }
         });
-        const data = await response.json();
-        if (data.success) {
+        if (response.data.success) {
           toast.success('Maintenance record deleted successfully');
           fetchMaintenanceRecords();
         } else {
-          toast.error(data.message || 'Failed to delete maintenance record');
+          const errorMessage = getOperationErrorMessage({ type: 'delete', resource: 'maintenance' }, error);
+          toast.error(errorMessage);
         }
       } catch (error) {
-        toast.error('Failed to delete maintenance record');
+        const errorMessage = getOperationErrorMessage({ type: 'delete', resource: 'maintenance' }, error);
+        toast.error(errorMessage);
       }
     }
   };

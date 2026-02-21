@@ -11,7 +11,7 @@ const Login = () => {
     name: '',
     email: '',
     password: '',
-    role: 'driver'
+    role: 'Fleet Manager'
   });
   const { login, register, loading } = useAuth();
   const navigate = useNavigate();
@@ -49,7 +49,7 @@ const Login = () => {
       name: '',
       email: '',
       password: '',
-      role: 'driver'
+      role: 'Fleet Manager'
     });
   };
 
@@ -152,10 +152,10 @@ const Login = () => {
                     onChange={handleChange}
                     className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none"
                   >
-                    <option value="driver">Driver</option>
-                    <option value="dispatcher">Dispatcher</option>
-                    <option value="manager">Manager</option>
-                    <option value="admin">Admin</option>
+                    <option value="Fleet Manager">Fleet Manager</option>
+                    <option value="Dispatcher">Dispatcher</option>
+                    <option value="Safety Officer">Safety Officer</option>
+                    <option value="Financial Analyst">Financial Analyst</option>
                   </select>
                 </div>
               </div>
@@ -206,9 +206,10 @@ const Login = () => {
           <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
             <p className="text-xs font-medium text-blue-900 mb-2">Demo Credentials:</p>
             <div className="space-y-1 text-xs text-blue-700">
-              <p><strong>Admin:</strong> admin@fleetflow.com / admin123</p>
-              <p><strong>Manager:</strong> manager@fleetflow.com / manager123</p>
-              <p><strong>Driver:</strong> driver@fleetflow.com / driver123</p>
+              <p><strong>Fleet Manager:</strong> fleet@fleetflow.com / fleet123</p>
+              <p><strong>Dispatcher:</strong> dispatcher@fleetflow.com / dispatch123</p>
+              <p><strong>Safety Officer:</strong> safety@fleetflow.com / safety123</p>
+              <p><strong>Financial Analyst:</strong> finance@fleetflow.com / finance123</p>
             </div>
           </div>
         </div>

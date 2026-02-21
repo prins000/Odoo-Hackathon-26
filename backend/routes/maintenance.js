@@ -16,14 +16,14 @@ const router = express.Router();
 
 router.use(authenticateToken);
 
-router.post('/', authorizeRoles('Fleet Manager', 'Dispatcher'), createMaintenance);
+router.post('/', authorizeRoles('Fleet Manager'), createMaintenance);
 router.get('/', getAllMaintenance);
 router.get('/stats', getMaintenanceStats);
 router.get('/upcoming', getUpcomingMaintenance);
 router.get('/:id', getMaintenanceById);
-router.put('/:id', authorizeRoles('Fleet Manager', 'Dispatcher'), updateMaintenance);
-router.put('/:id/start', authorizeRoles('Fleet Manager', 'Dispatcher'), startMaintenance);
-router.put('/:id/complete', authorizeRoles('Fleet Manager', 'Dispatcher'), completeMaintenance);
-router.put('/:id/cancel', authorizeRoles('Fleet Manager', 'Dispatcher'), cancelMaintenance);
+router.put('/:id', authorizeRoles('Fleet Manager'), updateMaintenance);
+router.put('/:id/start', authorizeRoles('Fleet Manager'), startMaintenance);
+router.put('/:id/complete', authorizeRoles('Fleet Manager'), completeMaintenance);
+router.put('/:id/cancel', authorizeRoles('Fleet Manager'), cancelMaintenance);
 
 export default router;

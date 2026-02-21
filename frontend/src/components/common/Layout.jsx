@@ -24,40 +24,52 @@ const Layout = ({ children }) => {
 
   const menuItems = [
     {
-      name: 'Dashboard',
+      name: user?.role === 'Safety Officer' ? 'Safety Dashboard' : 'Dashboard',
       path: '/dashboard',
       icon: LayoutDashboard,
-      roles: ['admin', 'manager', 'dispatcher', 'driver']
+      roles: ['Fleet Manager', 'Dispatcher', 'Safety Officer', 'Financial Analyst']
     },
     {
       name: 'Vehicles',
       path: '/vehicles',
       icon: Truck,
-      roles: ['admin', 'manager', 'dispatcher']
+      roles: ['Fleet Manager'],
+      description: 'Oversee vehicle health and asset lifecycle'
     },
     {
-      name: 'Trips',
+      name: 'Trip Management',
       path: '/trips',
       icon: Route,
-      roles: ['admin', 'manager', 'dispatcher', 'driver']
-    },
-    {
-      name: 'Drivers',
-      path: '/drivers',
-      icon: Users,
-      roles: ['admin', 'manager', 'dispatcher']
+      roles: ['Dispatcher'],
+      description: 'Create trips, assign drivers, and validate cargo loads'
     },
     {
       name: 'Maintenance',
       path: '/maintenance',
       icon: Wrench,
-      roles: ['admin', 'manager', 'dispatcher']
+      roles: ['Fleet Manager'],
+      description: 'Manage vehicle maintenance and scheduling'
     },
     {
       name: 'Expenses',
       path: '/expenses',
       icon: DollarSign,
-      roles: ['admin', 'manager', 'dispatcher']
+      roles: ['Financial Analyst'],
+      description: 'Audit fuel spend, maintenance ROI, and operational costs'
+    },
+    {
+      name: 'Fuel Management',
+      path: '/fuel',
+      icon: DollarSign,
+      roles: ['Financial Analyst'],
+      description: 'Monitor fuel consumption and costs'
+    },
+    {
+      name: 'Analytics',
+      path: '/analytics',
+      icon: LayoutDashboard,
+      roles: ['Safety Officer', 'Financial Analyst'],
+      description: 'Monitor compliance, safety scores, and financial metrics'
     }
   ];
 
@@ -124,6 +136,22 @@ const Layout = ({ children }) => {
 
         {/* User profile section */}
         <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+          <div className="flex items-center mb-3">
+            <Link
+              to="/profile"
+              className={`
+                flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors duration-200 w-full
+                ${isActive('/profile')
+                  ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                }
+              `}
+              onClick={() => setSidebarOpen(false)}
+            >
+              <User className="mr-3 h-5 w-5" />
+              Profile
+            </Link>
+          </div>
           <div className="flex items-center">
             <div className="flex-shrink-0">
               <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
@@ -159,9 +187,13 @@ const Layout = ({ children }) => {
               </button>
               
               <div className="flex items-center space-x-4">
-                <button className="text-gray-500 hover:text-gray-700">
-                  <Settings className="h-5 w-5" />
-                </button>
+                <Link
+                  to="/profile"
+                  className="text-gray-500 hover:text-gray-700"
+                  title="Profile"
+                >
+                  <User className="h-5 w-5" />
+                </Link>
               </div>
             </div>
           </div>

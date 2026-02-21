@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { toast } from 'react-hot-toast';
+import { useSelector } from 'react-redux';
+import axios from 'axios';
+import toast from 'react-hot-toast';
+import { getOperationErrorMessage } from '../../utils/errorMessages';
 
 const FuelManagement = () => {
+  const { token } = useSelector((state) => state.auth);
   const [fuelLogs, setFuelLogs] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [drivers, setDrivers] = useState([]);
@@ -28,17 +32,17 @@ const FuelManagement = () => {
 
   const fetchFuelLogs = async () => {
     try {
-      const response = await fetch('/api/fuel', {
+      const response = await axios.get('/api/fuel', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
-      const data = await response.json();
-      if (data.success) {
-        setFuelLogs(data.data);
+      if (response.data.success) {
+        setFuelLogs(response.data.data);
       }
     } catch (error) {
-      toast.error('Failed to fetch fuel logs');
+      const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'fuel' }, error);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -46,49 +50,45 @@ const FuelManagement = () => {
 
   const fetchVehicles = async () => {
     try {
-      const response = await fetch('/api/vehicles', {
+      const response = await axios.get('/api/vehicles', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
-      const data = await response.json();
-      if (data.success) {
-        setVehicles(data.data);
+      if (response.data.success) {
+        setVehicles(response.data.data);
       }
     } catch (error) {
-      console.error('Failed to fetch vehicles');
+      const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'vehicles' }, error);
+      console.error(errorMessage);
     }
   };
 
   const fetchDrivers = async () => {
     try {
-      const response = await fetch('/api/drivers', {
+      const response = await axios.get('/api/drivers', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
+          'Authorization': `Bearer ${token}`
         }
       });
-      const data = await response.json();
-      if (data.success) {
-        setDrivers(data.data);
+      if (response.data.success) {
+        setDrivers(response.data.data);
       }
     } catch (error) {
-      console.error('Failed to fetch drivers');
+      const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'drivers' }, error);
+      console.error(errorMessage);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/fuel', {
-        method: 'POST',
+      const response = await axios.post('/api/fuel', formData, {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: JSON.stringify(formData)
+          'Authorization': `Bearer ${token}`
+        }
       });
-      const data = await response.json();
-      if (data.success) {
+      if (response.data.success) {
         toast.success('Fuel log added successfully');
         setShowAddModal(false);
         fetchFuelLogs();
@@ -105,31 +105,33 @@ const FuelManagement = () => {
           paymentMethod: 'Cash'
         });
       } else {
-        toast.error(data.message || 'Failed to add fuel log');
+        const errorMessage = getOperationErrorMessage({ type: 'create', resource: 'fuel' }, error);
+        toast.error(errorMessage);
       }
     } catch (error) {
-      toast.error('Failed to add fuel log');
+      const errorMessage = getOperationErrorMessage({ type: 'create', resource: 'fuel' }, error);
+      toast.error(errorMessage);
     }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this fuel log?')) {
       try {
-        const response = await fetch(`/api/fuel/${id}`, {
-          method: 'DELETE',
+        const response = await axios.delete(`/api/fuel/${id}`, {
           headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           }
         });
-        const data = await response.json();
-        if (data.success) {
+        if (response.data.success) {
           toast.success('Fuel log deleted successfully');
           fetchFuelLogs();
         } else {
-          toast.error(data.message || 'Failed to delete fuel log');
+          const errorMessage = getOperationErrorMessage({ type: 'delete', resource: 'fuel' }, error);
+          toast.error(errorMessage);
         }
       } catch (error) {
-        toast.error('Failed to delete fuel log');
+        const errorMessage = getOperationErrorMessage({ type: 'delete', resource: 'fuel' }, error);
+        toast.error(errorMessage);
       }
     }
   };

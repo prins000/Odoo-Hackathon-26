@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { getOperationErrorMessage } from '../../utils/errorMessages';
 import {
   Truck,
   Users,
@@ -51,13 +52,18 @@ const CommandCenter = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`http://localhost:3000/api/analytics/dashboard?filter=${timeFilter}`);
+      const response = await axios.get(`http://localhost:3000/api/analytics/dashboard?filter=${timeFilter}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
       setDashboardData(response.data.data);
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       // Don't show toast for 401 errors as they're expected during auth flow
       if (error.response?.status !== 401) {
-        toast.error('Failed to load dashboard data');
+        const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'dashboard' }, error);
+        toast.error(errorMessage);
       }
     } finally {
       setLoading(false);

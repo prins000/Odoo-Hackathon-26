@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { getOperationErrorMessage } from '../../utils/errorMessages';
+import { useSelector } from 'react-redux';
 import {
   Route,
   Plus,
@@ -25,14 +27,15 @@ import {
 } from 'lucide-react';
 
 const TripDispatcher = () => {
+  const { user } = useSelector((state) => state.auth);
   const [trips, setTrips] = useState([]);
   const [vehicles, setVehicles] = useState([]);
-  const [drivers, setDrivers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [filterPriority, setFilterPriority] = useState('all');
   const [formData, setFormData] = useState({
     origin: '',
     destination: '',
@@ -41,11 +44,15 @@ const TripDispatcher = () => {
     cargoWeight: '',
     cargoType: '',
     revenue: '',
+    estimatedCost: '',
     vehicle: '',
-    driver: '',
-    status: 'planned',
-    startDate: '',
-    endDate: '',
+    priority: 'Medium',
+    customer: {
+      name: '',
+      phone: '',
+      email: '',
+      address: ''
+    },
     notes: ''
   });
   const [error, setError] = useState('');
@@ -53,16 +60,22 @@ const TripDispatcher = () => {
   useEffect(() => {
     fetchTrips();
     fetchVehicles();
-    fetchDrivers();
-  }, []);
+  }, [filterStatus, filterPriority, searchTerm]);
 
   const fetchTrips = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/trips');
+      const response = await axios.get('http://localhost:3000/api/trips', {
+        params: {
+          status: filterStatus !== 'all' ? filterStatus : undefined,
+          priority: filterPriority !== 'all' ? filterPriority : undefined,
+          search: searchTerm || undefined
+        }
+      });
       setTrips(response.data.data);
     } catch (error) {
       console.error('Error fetching trips:', error);
-      toast.error('Failed to fetch trips');
+      const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'trips' }, error);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -70,19 +83,12 @@ const TripDispatcher = () => {
 
   const fetchVehicles = async () => {
     try {
-      const response = await axios.get('http://localhost:3000/api/vehicles');
+      const response = await axios.get('http://localhost:3000/api/vehicles', {
+        params: { status: 'Available' }
+      });
       setVehicles(response.data.data);
     } catch (error) {
       console.error('Error fetching vehicles:', error);
-    }
-  };
-
-  const fetchDrivers = async () => {
-    try {
-      const response = await axios.get('http://localhost:3000/api/drivers');
-      setDrivers(response.data.data);
-    } catch (error) {
-      console.error('Error fetching drivers:', error);
     }
   };
 
@@ -94,8 +100,8 @@ const TripDispatcher = () => {
       // Validate cargo weight against vehicle capacity
       if (formData.vehicle && formData.cargoWeight) {
         const selectedVehicle = vehicles.find(v => v._id === formData.vehicle);
-        if (selectedVehicle && parseFloat(formData.cargoWeight) > parseFloat(selectedVehicle.capacity)) {
-          setError(`Cargo weight exceeds vehicle capacity (${selectedVehicle.capacity} tons)`);
+        if (selectedVehicle && parseFloat(formData.cargoWeight) > parseFloat(selectedVehicle.maxLoadCapacity)) {
+          setError(`Cargo weight exceeds vehicle capacity (${selectedVehicle.maxLoadCapacity} tons)`);
           return;
         }
       }
@@ -113,7 +119,7 @@ const TripDispatcher = () => {
       setEditingTrip(null);
       resetForm();
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 'Error saving trip';
+      const errorMessage = getOperationErrorMessage({ type: editingTrip ? 'update' : 'create', resource: 'trip' }, error);
       setError(errorMessage);
       toast.error(errorMessage);
     }
@@ -129,11 +135,15 @@ const TripDispatcher = () => {
       cargoWeight: trip.cargoWeight,
       cargoType: trip.cargoType,
       revenue: trip.revenue,
+      estimatedCost: trip.estimatedCost,
       vehicle: trip.vehicle?._id || '',
-      driver: trip.driver?._id || '',
-      status: trip.status,
-      startDate: trip.startDate ? new Date(trip.startDate).toISOString().split('T')[0] : '',
-      endDate: trip.endDate ? new Date(trip.endDate).toISOString().split('T')[0] : '',
+      priority: trip.priority || 'Medium',
+      customer: trip.customer || {
+        name: '',
+        phone: '',
+        email: '',
+        address: ''
+      },
       notes: trip.notes || ''
     });
     setShowModal(true);
@@ -147,21 +157,29 @@ const TripDispatcher = () => {
         fetchTrips();
       } catch (error) {
         console.error('Error deleting trip:', error);
-        toast.error('Failed to delete trip');
+        const errorMessage = getOperationErrorMessage({ type: 'delete', resource: 'trip' }, error);
+        toast.error(errorMessage);
       }
     }
   };
 
-  const handleStatusChange = async (tripId, newStatus) => {
+  const handleStatusChange = async (tripId, action, data = {}) => {
     try {
-      await axios.patch(`http://localhost:3000/api/trips/${tripId}/status`, {
-        status: newStatus
-      });
-      toast.success(`Trip status updated to ${newStatus}`);
+      if (action === 'complete') {
+        await axios.put(`http://localhost:3000/api/trips/${tripId}/complete`, data);
+        toast.success('Trip completed successfully');
+      } else if (action === 'cancel') {
+        await axios.put(`http://localhost:3000/api/trips/${tripId}/cancel`, data);
+        toast.success('Trip cancelled successfully');
+      } else {
+        await axios.put(`http://localhost:3000/api/trips/${tripId}`, { status: action });
+        toast.success(`Trip status updated to ${action}`);
+      }
       fetchTrips();
     } catch (error) {
       console.error('Error updating trip status:', error);
-      toast.error('Failed to update trip status');
+      const errorMessage = getOperationErrorMessage({ type: 'update', resource: 'trip' }, error);
+      toast.error(errorMessage);
     }
   };
 
@@ -174,31 +192,37 @@ const TripDispatcher = () => {
       cargoWeight: '',
       cargoType: '',
       revenue: '',
+      estimatedCost: '',
       vehicle: '',
-      driver: '',
-      status: 'planned',
-      startDate: '',
-      endDate: '',
+      priority: 'Medium',
+      customer: {
+        name: '',
+        phone: '',
+        email: '',
+        address: ''
+      },
       notes: ''
     });
   };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'planned': return 'bg-blue-100 text-blue-800';
-      case 'in-progress': return 'bg-yellow-100 text-yellow-800';
-      case 'completed': return 'bg-green-100 text-green-800';
-      case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'Draft': return 'bg-gray-100 text-gray-800';
+      case 'Dispatched': return 'bg-blue-100 text-blue-800';
+      case 'In Transit': return 'bg-yellow-100 text-yellow-800';
+      case 'Completed': return 'bg-green-100 text-green-800';
+      case 'Cancelled': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'planned': return <Calendar className="h-4 w-4" />;
-      case 'in-progress': return <Play className="h-4 w-4" />;
-      case 'completed': return <CheckCircle className="h-4 w-4" />;
-      case 'cancelled': return <XCircle className="h-4 w-4" />;
+      case 'Draft': return <Calendar className="h-4 w-4" />;
+      case 'Dispatched': return <Play className="h-4 w-4" />;
+      case 'In Transit': return <Navigation className="h-4 w-4" />;
+      case 'Completed': return <CheckCircle className="h-4 w-4" />;
+      case 'Cancelled': return <XCircle className="h-4 w-4" />;
       default: return <AlertCircle className="h-4 w-4" />;
     }
   };
@@ -207,9 +231,11 @@ const TripDispatcher = () => {
     const matchesSearch = trip.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          trip.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          (trip.vehicle?.licensePlate && trip.vehicle.licensePlate.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                         (trip.driver?.name && trip.driver.name.toLowerCase().includes(searchTerm.toLowerCase()));
+                         (trip.tripId && trip.tripId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (trip.customer?.name && trip.customer.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus = filterStatus === 'all' || trip.status === filterStatus;
-    return matchesSearch && matchesStatus;
+    const matchesPriority = filterPriority === 'all' || trip.priority === filterPriority;
+    return matchesSearch && matchesStatus && matchesPriority;
   });
 
   if (loading) {
@@ -223,14 +249,27 @@ const TripDispatcher = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Trip Dispatcher</h1>
-        <button
-          onClick={() => setShowModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
-        >
-          <Plus className="h-5 w-5 mr-2" />
-          Create Trip
-        </button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">
+            {user?.role === 'driver' ? 'My Trips' : 'Trip Management'}
+          </h1>
+          <p className="text-gray-600 mt-1">
+            {user?.role === 'driver' 
+              ? 'View and manage your assigned trips' 
+              : 'Create and manage all trips'
+            }
+          </p>
+        </div>
+        {/* Only show Create Trip button for non-driver roles */}
+        {user?.role !== 'driver' && (
+          <button
+            onClick={() => setShowModal(true)}
+            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+          >
+            <Plus className="h-5 w-5 mr-2" />
+            Create Trip
+          </button>
+        )}
       </div>
 
       <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
@@ -340,35 +379,89 @@ const TripDispatcher = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleEdit(trip)}
-                        className="text-blue-600 hover:text-blue-900"
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(trip._id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                      {trip.status === 'planned' && (
-                        <button
-                          onClick={() => handleStatusChange(trip._id, 'in-progress')}
-                          className="text-green-600 hover:text-green-900"
-                          title="Start Trip"
-                        >
-                          <Play className="h-4 w-4" />
-                        </button>
+                      {/* Edit and Delete buttons only for non-drivers */}
+                      {user?.role !== 'driver' && (
+                        <>
+                          <button
+                            onClick={() => handleEdit(trip)}
+                            className="text-blue-600 hover:text-blue-900"
+                            title="Edit Trip"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(trip._id)}
+                            className="text-red-600 hover:text-red-900"
+                            title="Delete Trip"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </>
                       )}
-                      {trip.status === 'in-progress' && (
-                        <button
-                          onClick={() => handleStatusChange(trip._id, 'completed')}
-                          className="text-green-600 hover:text-green-900"
-                          title="Complete Trip"
-                        >
-                          <CheckCircle className="h-4 w-4" />
-                        </button>
+                      
+                      {/* Status change buttons - different for drivers vs others */}
+                      {user?.role === 'driver' ? (
+                        // Drivers can only start/stop their own trips
+                        <>
+                          {trip.status === 'planned' && (
+                            <button
+                              onClick={() => handleStatusChange(trip._id, 'in-progress')}
+                              className="text-green-600 hover:text-green-900"
+                              title="Start Trip"
+                            >
+                              <Play className="h-4 w-4" />
+                            </button>
+                          )}
+                          {trip.status === 'in-progress' && (
+                            <button
+                              onClick={() => handleStatusChange(trip._id, 'completed')}
+                              className="text-blue-600 hover:text-blue-900"
+                              title="Complete Trip"
+                            >
+                              <Square className="h-4 w-4" />
+                            </button>
+                          )}
+                        </>
+                      ) : (
+                        // Admin/Manager/Dispatcher can change any status
+                        <>
+                          {trip.status === 'planned' && (
+                            <button
+                              onClick={() => handleStatusChange(trip._id, 'in-progress')}
+                              className="text-green-600 hover:text-green-900"
+                              title="Start Trip"
+                            >
+                              <Play className="h-4 w-4" />
+                            </button>
+                          )}
+                          {trip.status === 'in-progress' && (
+                            <>
+                              <button
+                                onClick={() => handleStatusChange(trip._id, 'paused')}
+                                className="text-yellow-600 hover:text-yellow-900"
+                                title="Pause Trip"
+                              >
+                                <Pause className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => handleStatusChange(trip._id, 'completed')}
+                                className="text-blue-600 hover:text-blue-900"
+                                title="Complete Trip"
+                              >
+                                <Square className="h-4 w-4" />
+                              </button>
+                            </>
+                          )}
+                          {trip.status === 'paused' && (
+                            <button
+                              onClick={() => handleStatusChange(trip._id, 'in-progress')}
+                              className="text-green-600 hover:text-green-900"
+                              title="Resume Trip"
+                            >
+                              <Play className="h-4 w-4" />
+                            </button>
+                          )}
+                        </>
                       )}
                     </div>
                   </td>
