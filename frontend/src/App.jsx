@@ -9,6 +9,9 @@ import Layout from './components/common/Layout';
 import Login from './pages/auth/Login';
 import CommandCenter from './pages/dashboard/CommandCenter';
 import SafetyDashboard from './pages/dashboard/SafetyDashboard';
+import FleetDashboard from './pages/dashboard/FleetDashboard';
+import DispatcherDashboard from './pages/dashboard/DispatcherDashboard';
+import FinancialDashboard from './pages/dashboard/FinancialDashboard';
 import VehicleRegistry from './pages/vehicles/VehicleRegistry';
 import TripDispatcher from './pages/trips/TripDispatcher';
 import MaintenanceManagement from './pages/maintenance/MaintenanceManagement';
@@ -36,6 +39,18 @@ const DashboardRouter = () => {
   
   if (user?.role === 'Safety Officer') {
     return <SafetyDashboard />;
+  }
+  
+  if (user?.role === 'Fleet Manager') {
+    return <FleetDashboard />;
+  }
+  
+  if (user?.role === 'Dispatcher') {
+    return <DispatcherDashboard />;
+  }
+  
+  if (user?.role === 'Financial Analyst') {
+    return <FinancialDashboard />;
   }
   
   return <CommandCenter />;

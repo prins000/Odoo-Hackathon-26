@@ -24,7 +24,10 @@ const Layout = ({ children }) => {
 
   const menuItems = [
     {
-      name: user?.role === 'Safety Officer' ? 'Safety Dashboard' : 'Dashboard',
+      name: user?.role === 'Safety Officer' ? 'Safety Dashboard' : 
+            user?.role === 'Fleet Manager' ? 'Fleet Dashboard' : 
+            user?.role === 'Dispatcher' ? 'Dispatch Dashboard' : 
+            user?.role === 'Financial Analyst' ? 'Financial Dashboard' : 'Dashboard',
       path: '/dashboard',
       icon: LayoutDashboard,
       roles: ['Fleet Manager', 'Dispatcher', 'Safety Officer', 'Financial Analyst']
