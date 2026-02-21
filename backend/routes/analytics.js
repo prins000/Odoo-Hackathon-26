@@ -15,7 +15,7 @@ router.use(authenticateToken);
 router.get('/dashboard', getDashboardStats);
 router.get('/vehicle-performance', getVehiclePerformance);
 router.get('/driver-performance', getDriverPerformance);
-router.get('/financial-reports', authorizeRoles('Financial Analyst'), getFinancialReports);
-router.get('/compliance', authorizeRoles('Safety Officer'), getComplianceReport);
+router.get('/financial-reports', getFinancialReports);
+router.get('/compliance', getComplianceReport);
 
 export default router;

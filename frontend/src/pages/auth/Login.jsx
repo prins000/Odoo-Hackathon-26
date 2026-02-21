@@ -171,6 +171,18 @@ const Login = () => {
               </div>
             </div>
 
+            {isLogin && (
+              <div className="mt-2 text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotPassword(true)}
+                  className="text-blue-600 hover:text-blue-500 text-sm font-medium"
+                >
+                  Forgot your password?
+                </button>
+              </div>
+            )}
+
             {!isLogin && (
               <div>
                 <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
