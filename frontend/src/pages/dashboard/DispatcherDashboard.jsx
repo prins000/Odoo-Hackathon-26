@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { getOperationErrorMessage } from '../../utils/errorMessages';
@@ -34,6 +35,7 @@ import {
 
 const DispatcherDashboard = () => {
   const { user, token } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState({
     dispatchStats: {
       totalTrips: 0,
@@ -309,21 +311,30 @@ const DispatcherDashboard = () => {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Dispatch Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <button 
-            onClick={() => setShowCreateTrip(true)}
+            onClick={() => navigate('/trips')}
             className="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
           >
             <Plus className="h-8 w-8 text-blue-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">Create Trip</span>
           </button>
-          <button className="flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+          <button 
+            onClick={() => navigate('/trips')}
+            className="flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+          >
             <UserCheck className="h-8 w-8 text-green-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">Assign Driver</span>
           </button>
-          <button className="flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+          <button 
+            onClick={() => navigate('/trips')}
+            className="flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors"
+          >
             <Package className="h-8 w-8 text-yellow-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">Validate Cargo</span>
           </button>
-          <button className="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+          <button 
+            onClick={() => navigate('/analytics')}
+            className="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+          >
             <Navigation className="h-8 w-8 text-purple-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">Track Fleet</span>
           </button>
@@ -335,9 +346,12 @@ const DispatcherDashboard = () => {
         <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">Active Trips</h2>
-            <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-              {dashboardData.activeTrips.length} In Progress
-            </span>
+            <button 
+              onClick={() => navigate('/trips')}
+              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+            >
+              View All
+            </button>
           </div>
           <div className="space-y-3">
             {dashboardData.activeTrips.slice(0, 5).map((trip) => (

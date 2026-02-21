@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { getOperationErrorMessage } from '../../utils/errorMessages';
@@ -29,6 +30,7 @@ import {
 
 const FleetDashboard = () => {
   const { user, token } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
   const [dashboardData, setDashboardData] = useState({
     fleetStats: {
       totalVehicles: 0,
@@ -276,19 +278,31 @@ const FleetDashboard = () => {
       <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
         <h2 className="text-lg font-semibold text-gray-900 mb-4">Fleet Management</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <button className="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors">
+          <button 
+            onClick={() => navigate('/vehicles')}
+            className="flex flex-col items-center p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
+          >
             <Truck className="h-8 w-8 text-blue-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">Add Vehicle</span>
           </button>
-          <button className="flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors">
+          <button 
+            onClick={() => navigate('/maintenance')}
+            className="flex flex-col items-center p-4 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
+          >
             <Wrench className="h-8 w-8 text-green-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">Schedule Maintenance</span>
           </button>
-          <button className="flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors">
+          <button 
+            onClick={() => navigate('/analytics')}
+            className="flex flex-col items-center p-4 bg-yellow-50 rounded-lg hover:bg-yellow-100 transition-colors"
+          >
             <BarChart3 className="h-8 w-8 text-yellow-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">Fleet Analytics</span>
           </button>
-          <button className="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors">
+          <button 
+            onClick={() => navigate('/expenses')}
+            className="flex flex-col items-center p-4 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
+          >
             <FileText className="h-8 w-8 text-purple-600 mb-2" />
             <span className="text-sm font-medium text-gray-900">Generate Reports</span>
           </button>
@@ -361,8 +375,11 @@ const FleetDashboard = () => {
       <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold text-gray-900">Asset Lifecycle</h2>
-          <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-            View All Assets
+          <button 
+            onClick={() => navigate('/assets')}
+            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+          >
+            View All
           </button>
         </div>
         <div className="overflow-x-auto">

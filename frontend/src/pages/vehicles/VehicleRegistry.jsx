@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
 import toast from 'react-hot-toast';
-import { useSelector } from 'react-redux';
 import { getOperationErrorMessage } from '../../utils/errorMessages';
 import {
   Truck,
@@ -73,11 +73,12 @@ const VehicleRegistry = () => {
           search: searchTerm || undefined
         }
       });
-      setVehicles(response.data.data);
+      setVehicles(response.data?.data || []);
     } catch (error) {
       console.error('Error fetching vehicles:', error);
       const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'vehicles' }, error);
       toast.error(errorMessage);
+      setVehicles([]);
     } finally {
       setLoading(false);
     }

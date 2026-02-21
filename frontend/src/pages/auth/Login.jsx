@@ -3,17 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { Eye, EyeOff, Truck, Mail, Lock, User, Building } from 'lucide-react';
 import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const Login = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotLoading, setForgotLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     role: 'Fleet Manager'
   });
-  const { login, register, loading } = useAuth();
+  const { login, register, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -21,6 +25,35 @@ const Login = () => {
       ...formData,
       [e.target.name]: e.target.value
     });
+  };
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    
+    if (!forgotEmail) {
+      toast.error('Please enter your email address');
+      return;
+    }
+    
+    try {
+      setForgotLoading(true);
+      const response = await axios.post('http://localhost:3000/api/auth/forgot-password', {
+        email: forgotEmail
+      });
+      
+      if (response.data.success) {
+        toast.success('Password reset link sent to your email');
+        setShowForgotPassword(false);
+        setForgotEmail('');
+      } else {
+        toast.error(response.data.message || 'Failed to send reset link');
+      }
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      toast.error('Failed to send reset link. Please try again.');
+    } finally {
+      setForgotLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -164,10 +197,10 @@ const Login = () => {
             <div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={authLoading}
                 className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
               >
-                {loading ? (
+                {authLoading ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     {isLogin ? 'Signing in...' : 'Creating account...'}
@@ -214,6 +247,67 @@ const Login = () => {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      {showForgotPassword && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-xl p-6 m-4 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Forgot Password</h3>
+              <button
+                onClick={() => setShowForgotPassword(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+            
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div>
+                <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700 mb-1">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+                  <input
+                    id="forgot-email"
+                    type="email"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="pl-10 w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="Enter your email address"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <button
+                type="submit"
+                disabled={forgotLoading}
+                className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200"
+              >
+                {forgotLoading ? (
+                  <div className="flex items-center">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Sending...
+                  </div>
+                ) : (
+                  'Send Reset Link'
+                )}
+              </button>
+            </form>
+            
+            <div className="mt-4 text-center">
+              <button
+                onClick={() => setShowForgotPassword(false)}
+                className="text-blue-600 hover:text-blue-500 text-sm font-medium"
+              >
+                Back to Login
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

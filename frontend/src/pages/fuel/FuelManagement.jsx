@@ -32,16 +32,18 @@ const FuelManagement = () => {
 
   const fetchFuelLogs = async () => {
     try {
-      const response = await axios.get('/api/fuel', {
+      const response = await axios.get('http://localhost:3000/api/fuel', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       if (response.data.success) {
-        setFuelLogs(response.data.data);
+        setFuelLogs(response.data?.data || []);
       }
     } catch (error) {
       const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'fuel' }, error);
+      toast.error(errorMessage);
+      setFuelLogs([]);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -50,32 +52,36 @@ const FuelManagement = () => {
 
   const fetchVehicles = async () => {
     try {
-      const response = await axios.get('/api/vehicles', {
+      const response = await axios.get('http://localhost:3000/api/vehicles', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       if (response.data.success) {
-        setVehicles(response.data.data);
+        setVehicles(response.data?.data || []);
       }
     } catch (error) {
       const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'vehicles' }, error);
+      toast.error(errorMessage);
+      setVehicles([]);
       console.error(errorMessage);
     }
   };
 
   const fetchDrivers = async () => {
     try {
-      const response = await axios.get('/api/drivers', {
+      const response = await axios.get('http://localhost:3000/api/drivers', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       if (response.data.success) {
-        setDrivers(response.data.data);
+        setDrivers(response.data?.data || []);
       }
     } catch (error) {
       const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'drivers' }, error);
+      toast.error(errorMessage);
+      setDrivers([]);
       console.error(errorMessage);
     }
   };
@@ -83,7 +89,7 @@ const FuelManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('/api/fuel', formData, {
+      const response = await axios.post('http://localhost:3000/api/fuel', formData, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -117,7 +123,7 @@ const FuelManagement = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this fuel log?')) {
       try {
-        const response = await axios.delete(`/api/fuel/${id}`, {
+        const response = await axios.delete(`http://localhost:3000/api/fuel/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

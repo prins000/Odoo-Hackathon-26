@@ -48,13 +48,13 @@ const MaintenanceManagement = () => {
 
   const fetchMaintenanceRecords = async () => {
     try {
-      const response = await axios.get('/api/maintenance', {
+      const response = await axios.get('http://localhost:3000/api/maintenance', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       if (response.data.success) {
-        setMaintenanceRecords(response.data.data);
+        setMaintenanceRecords(response.data?.data || []);
       }
     } catch (error) {
       const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'maintenance' }, error);
@@ -66,16 +66,18 @@ const MaintenanceManagement = () => {
 
   const fetchVehicles = async () => {
     try {
-      const response = await axios.get('/api/vehicles', {
+      const response = await axios.get('http://localhost:3000/api/vehicles', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       if (response.data.success) {
-        setVehicles(response.data.data);
+        setVehicles(response.data?.data || []);
       }
     } catch (error) {
       const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'vehicles' }, error);
+      toast.error(errorMessage);
+      setVehicles([]);
       console.error(errorMessage);
     }
   };
@@ -83,11 +85,11 @@ const MaintenanceManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const url = editingRecord ? `/api/maintenance/${editingRecord._id}` : '/api/maintenance';
+      const url = editingRecord ? `http://localhost:3000/api/maintenance/${editingRecord._id}` : 'http://localhost:3000/api/maintenance';
       const method = editingRecord ? 'PUT' : 'POST';
       
       const response = await axios({
-        url: editingRecord ? `/api/maintenance/${editingRecord._id}` : '/api/maintenance',
+        url: editingRecord ? `http://localhost:3000/api/maintenance/${editingRecord._id}` : 'http://localhost:3000/api/maintenance',
         method: editingRecord ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -114,7 +116,7 @@ const MaintenanceManagement = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this maintenance record?')) {
       try {
-        const response = await axios.delete(`/api/maintenance/${id}`, {
+        const response = await axios.delete(`http://localhost:3000/api/maintenance/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }

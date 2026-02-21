@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import { getOperationErrorMessage } from '../../utils/errorMessages';
-import { useSelector } from 'react-redux';
 import {
   Route,
   Plus,
@@ -28,6 +28,7 @@ import {
 
 const TripDispatcher = () => {
   const { user } = useSelector((state) => state.auth);
+  const [error, setError] = useState('');
   const [trips, setTrips] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,7 +56,6 @@ const TripDispatcher = () => {
     },
     notes: ''
   });
-  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchTrips();
@@ -64,6 +64,7 @@ const TripDispatcher = () => {
 
   const fetchTrips = async () => {
     try {
+      setLoading(true);
       const response = await axios.get('http://localhost:3000/api/trips', {
         params: {
           status: filterStatus !== 'all' ? filterStatus : undefined,
@@ -71,11 +72,12 @@ const TripDispatcher = () => {
           search: searchTerm || undefined
         }
       });
-      setTrips(response.data.data);
+      setTrips(response.data?.data || []);
     } catch (error) {
       console.error('Error fetching trips:', error);
       const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'trips' }, error);
       toast.error(errorMessage);
+      setTrips([]);
     } finally {
       setLoading(false);
     }
@@ -86,9 +88,10 @@ const TripDispatcher = () => {
       const response = await axios.get('http://localhost:3000/api/vehicles', {
         params: { status: 'Available' }
       });
-      setVehicles(response.data.data);
+      setVehicles(response.data?.data || []);
     } catch (error) {
       console.error('Error fetching vehicles:', error);
+      setVehicles([]);
     }
   };
 
@@ -228,8 +231,8 @@ const TripDispatcher = () => {
   };
 
   const filteredTrips = trips.filter(trip => {
-    const matchesSearch = trip.origin.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         trip.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch = (trip.origin && trip.origin.toLowerCase().includes(searchTerm.toLowerCase())) ||
+                         (trip.destination && trip.destination.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          (trip.vehicle?.licensePlate && trip.vehicle.licensePlate.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          (trip.tripId && trip.tripId.toLowerCase().includes(searchTerm.toLowerCase())) ||
                          (trip.customer?.name && trip.customer.name.toLowerCase().includes(searchTerm.toLowerCase()));

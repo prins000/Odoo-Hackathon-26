@@ -51,16 +51,18 @@ const ExpenseManagement = () => {
 
   const fetchExpenses = async () => {
     try {
-      const response = await axios.get('/api/expenses', {
+      const response = await axios.get('http://localhost:3000/api/expenses', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       if (response.data.success) {
-        setExpenses(response.data.data);
+        setExpenses(response.data?.data || []);
       }
     } catch (error) {
       const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'expenses' }, error);
+      toast.error(errorMessage);
+      setExpenses([]);
       toast.error(errorMessage);
     } finally {
       setLoading(false);
@@ -69,16 +71,18 @@ const ExpenseManagement = () => {
 
   const fetchVehicles = async () => {
     try {
-      const response = await axios.get('/api/vehicles', {
+      const response = await axios.get('http://localhost:3000/api/vehicles', {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
       if (response.data.success) {
-        setVehicles(response.data.data);
+        setVehicles(response.data?.data || []);
       }
     } catch (error) {
       const errorMessage = getOperationErrorMessage({ type: 'fetch', resource: 'vehicles' }, error);
+      toast.error(errorMessage);
+      setVehicles([]);
       console.error(errorMessage);
     }
   };
@@ -86,11 +90,11 @@ const ExpenseManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const url = editingExpense ? `/api/expenses/${editingExpense._id}` : '/api/expenses';
+      const url = editingExpense ? `http://localhost:3000/api/expenses/${editingExpense._id}` : 'http://localhost:3000/api/expenses';
       const method = editingExpense ? 'PUT' : 'POST';
       
       const response = await axios({
-        url: editingExpense ? `/api/expenses/${editingExpense._id}` : '/api/expenses',
+        url: editingExpense ? `http://localhost:3000/api/expenses/${editingExpense._id}` : 'http://localhost:3000/api/expenses',
         method: editingExpense ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -117,7 +121,7 @@ const ExpenseManagement = () => {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this expense?')) {
       try {
-        const response = await axios.delete(`/api/expenses/${id}`, {
+        const response = await axios.delete(`http://localhost:3000/api/expenses/${id}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
