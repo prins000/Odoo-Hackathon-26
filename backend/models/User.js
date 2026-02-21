@@ -22,9 +22,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "Role is required"],
         enum: {
-            values: ['Fleet Manager', 'Dispatcher', 'Safety Officer', 'Financial Analyst'],
-            message: 'Role must be one of: Fleet Manager, Dispatcher, Safety Officer, Financial Analyst'
-        }
+            values: ['admin', 'manager', 'dispatcher', 'driver', 'Fleet Manager', 'Dispatcher', 'Safety Officer', 'Financial Analyst'],
+            message: 'Role must be one of: admin, manager, dispatcher, driver, Fleet Manager, Dispatcher, Safety Officer, Financial Analyst'
+        },
+        default: 'driver'
     },
     avatar: {
         type: String,
